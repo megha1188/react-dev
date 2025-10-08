@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Script Runner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <h2>Scripts</h2>
+            <button data-script="test">test</button>
+            <button data-script="lint">lint</button>
+            <button data-script="build">build</button>
+            <button data-script="deploy">deploy</button>
+            <button data-script="stress-test">stress-test</button>
+        </aside>
+        <main id="terminal">
+            <!-- Task outputs will be appended here -->
+        </main>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
