@@ -2,12 +2,13 @@ import React from 'react';
 
 interface MessageProps {
     text: string;
-    sender: 'user' | 'ai';
+    isSelf: boolean;
 }
 
-const Message: React.FC<MessageProps> = ({ text, sender }) => {
+const Message: React.FC<MessageProps> = ({ text, isSelf }) => {
+    const senderClass = isSelf ? 'user' : 'ai';
     return (
-        <div className={`message ${sender}`}>
+        <div className={`message ${senderClass}`}>
             <span>{text}</span>
         </div>
     );

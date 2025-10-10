@@ -2,15 +2,17 @@ import React, { useEffect, useRef } from 'react';
 import Message from './Message';
 
 interface MessageData {
+    id: number;
     text: string;
-    sender: 'user' | 'ai';
+    sender: string;
 }
 
 interface ChatWindowProps {
     messages: MessageData[];
+    selfSenderId: string;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, selfSenderId }) => {
     const chatWindowRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -21,8 +23,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
 
     return (
         <div id="chat-window" ref={chatWindowRef}>
-            {messages.map((msg, index) => (
-                <Message key={index} text={msg.text} sender={msg.sender} />
+            {messages.map((msg) => (
+                <Message key={msg.id} text={msg.text} isSelf={msg.sender === selfSenderId} />
             ))}
         </div>
     );

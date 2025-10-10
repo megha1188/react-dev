@@ -3,60 +3,17 @@ const chatForm = document.getElementById("chat-form")!;
 const messageInput = document.getElementById(
   "message-input"
 ) as HTMLInputElement;
-const SESSION_ID = "vanilla";
 
-// --- Load Initial Chat History ---
-async function fetchHistory() {
-  try {
-    const response = await fetch(
-      `http://localhost:3000/api/history?sessionId=${SESSION_ID}`
-    );
-    const history = await response.json();
+const SENDER_ID = "vanilla";
+const API_ENDPOINT = "http://localhost:3000";
 
-    const fragment = document.createDocumentFragment();
-    history.forEach((msg: { text: string; sender: "user" | "ai" }) => {
-      const messageElement = createMessageElement(msg.text, msg.sender);
-      fragment.appendChild(messageElement);
-    });
-    chatWindow.appendChild(fragment);
+let lastTimestamp = 0;
 
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-  } catch (error) {
-    console.error("Error fetching chat history:", error);
-    appendMessage("Failed to load chat history.", "ai");
-  }
-}
-
-// --- Handle New Messages ---
-chatForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const message = messageInput.value.trim();
-  if (!message) return;
-
-  appendMessage(message, "user");
-  messageInput.value = "";
-
-  try {
-    const response = await fetch(
-      `http://localhost:3000/api/chat?sessionId=${SESSION_ID}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      }
-    );
-    const data = await response.json();
-    appendMessage(data.text, "ai");
-  } catch (error) {
-    console.error("Error fetching AI response:", error);
-    appendMessage("Sorry, something went wrong.", "ai");
-  }
-});
-
-// --- Helper Functions ---
-function createMessageElement(text: string, sender: "user" | "ai") {
+// --- Message Rendering ---
+function createMessageElement(text: string, sender: string) {
   const messageElement = document.createElement("div");
-  messageElement.classList.add("message", sender);
+  const senderClass = sender === SENDER_ID ? "user" : "ai";
+  messageElement.classList.add("message", senderClass);
 
   const span = document.createElement("span");
   span.textContent = text;
@@ -65,11 +22,76 @@ function createMessageElement(text: string, sender: "user" | "ai") {
   return messageElement;
 }
 
-function appendMessage(text: string, sender: "user" | "ai") {
-  const messageElement = createMessageElement(text, sender);
+function appendMessages(messages: any[], shouldScroll: boolean) {
+  if (messages.length === 0) return;
+
+  const fragment = document.createDocumentFragment();
+  messages.forEach((msg) => {
+    const messageElement = createMessageElement(msg.text, msg.sender);
+    fragment.appendChild(messageElement);
+  });
+  chatWindow.appendChild(fragment);
+
+  lastTimestamp = messages[messages.length - 1].timestamp;
+
+  if (shouldScroll) {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+}
+
+// --- API Communication ---
+
+async function fetchHistory() {
+  try {
+    const response = await fetch(`${API_ENDPOINT}/api/history`);
+    const history = await response.json();
+    appendMessages(history, true);
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+  }
+}
+
+// Poll for new messages from the OTHER client
+setInterval(async () => {
+  try {
+    const response = await fetch(
+      `${API_ENDPOINT}/api/messages?since=${lastTimestamp}`
+    );
+    const newMessages = await response.json();
+
+    const otherClientMessages = newMessages.filter(
+      (msg: { sender: string }) => msg.sender !== SENDER_ID
+    );
+
+    appendMessages(otherClientMessages, true);
+  } catch (error) {
+    console.error("Error polling for messages:", error);
+  }
+}, 2000);
+
+// Handle sending a new message
+chatForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const messageText = messageInput.value.trim();
+  if (!messageText) return;
+
+  const messageElement = createMessageElement(messageText, SENDER_ID);
   chatWindow.appendChild(messageElement);
   chatWindow.scrollTop = chatWindow.scrollHeight;
-}
+
+  const messageToSend = { text: messageText, sender: SENDER_ID };
+  messageInput.value = "";
+
+  try {
+    await fetch(`${API_ENDPOINT}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messageToSend),
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+});
 
 // --- Initial Load ---
 fetchHistory();

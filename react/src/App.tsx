@@ -1,56 +1,87 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 import ChatWindow from "./components/ChatWindow";
 import MessageInput from "./components/MessageInput";
 
 interface MessageData {
+  id: number;
   text: string;
-  sender: "user" | "ai";
+  sender: string;
+  timestamp: number;
 }
 
-const SESSION_ID = "react";
+const SENDER_ID = "react";
+const API_ENDPOINT = "http://localhost:3000";
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<MessageData[]>([]);
+  const lastTimestampRef = useRef<number>(0);
 
-  // Fetch initial chat history on component mount
+  // Effect for initial history load
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/history?sessionId=${SESSION_ID}`
-        );
-        const history = await response.json();
+        const response = await fetch(`${API_ENDPOINT}/api/history`);
+        const history: MessageData[] = await response.json();
         setMessages(history);
+        if (history.length > 0) {
+          lastTimestampRef.current = history[history.length - 1].timestamp;
+        }
       } catch (error) {
         console.error("Error fetching chat history:", error);
-        setMessages([{ text: "Failed to load chat history.", sender: "ai" }]);
       }
     };
     fetchHistory();
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
-  const handleSendMessage = async (message: string) => {
-    const userMessage: MessageData = { text: message, sender: "user" };
-    // Optimistically update the UI with the user's message
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+  // Effect for polling new messages from the OTHER client
+  useEffect(() => {
+    const poll = setInterval(async () => {
+      try {
+        const response = await fetch(
+          `${API_ENDPOINT}/api/messages?since=${lastTimestampRef.current}`
+        );
+        const newMessages: MessageData[] = await response.json();
+
+        const otherClientMessages = newMessages.filter(
+          (msg) => msg.sender !== SENDER_ID
+        );
+
+        if (otherClientMessages.length > 0) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            ...otherClientMessages,
+          ]);
+          lastTimestampRef.current =
+            otherClientMessages[otherClientMessages.length - 1].timestamp;
+        }
+      } catch (error) {
+        console.error("Error polling for messages:", error);
+      }
+    }, 2000);
+
+    return () => clearInterval(poll);
+  }, []);
+
+  const handleSendMessage = async (messageText: string) => {
+    const optimisticMessage: MessageData = {
+      id: Date.now(),
+      text: messageText,
+      sender: SENDER_ID,
+      timestamp: Date.now(),
+    };
+    setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+
+    const messageToSend = { text: messageText, sender: SENDER_ID };
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/chat?sessionId=${SESSION_ID}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message }),
-            });
-            const aiMessage: MessageData = await response.json();
-            // Add the AI's response to the message list
-            setMessages(prevMessages => [...prevMessages, aiMessage]);
-        } catch (error) {
-            console.error('Error fetching AI response:', error);
-            const errorMessage: MessageData = { text: 'Sorry, something went wrong.', sender: 'ai' };
-      // Add an error message to the list
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      await fetch(`${API_ENDPOINT}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(messageToSend),
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 
@@ -59,7 +90,7 @@ const App: React.FC = () => {
       <div className="header">
         <h1>React Chat</h1>
       </div>
-      <ChatWindow messages={messages} />
+      <ChatWindow messages={messages} selfSenderId={SENDER_ID} />
       <MessageInput onSendMessage={handleSendMessage} />
     </div>
   );
