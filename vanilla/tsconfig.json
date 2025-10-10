@@ -1,13 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "es2017",
     "module": "commonjs",
-    "outDir": "./build",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "outDir": "build",
+    "strict": true
   },
-  "include": ["src/main.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src"]
 }

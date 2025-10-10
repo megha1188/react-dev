@@ -1,17 +1,14 @@
 {
-  "name": "interactive-script-runner",
+  "name": "vanilla-table",
   "version": "1.0.0",
-  "description": "A simple web app to demonstrate manual DOM manipulation.",
-  "main": "main.js",
   "scripts": {
-    "build": "tsc && cp src/*.html build/ && cp src/*.css build/",
     "start": "node server.js",
-    "dev": "tsc --watch & node server.js"
+    "build": "tsc"
   },
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
   "devDependencies": {
-    "express": "^5.1.0",
-    "typescript": "^5.0.0"
+    "typescript": "^4.1.3"
   }
 }

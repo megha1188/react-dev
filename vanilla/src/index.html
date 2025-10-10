@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Script Runner</title>
+    <title>Vanilla JS Table</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
-        <aside id="sidebar">
-            <h2>Scripts</h2>
-            <button data-script="run-all" class="run-all-button">Run All Scripts</button>
-            <hr>
-            <button data-script="test">test</button>
-            <button data-script="lint">lint</button>
-            <button data-script="build">build</button>
-            <button data-script="deploy">deploy</button>
-            <button data-script="stress-test">stress-test</button>
-        </aside>
-        <main id="terminal">
-            <input type="search" id="log-search" placeholder="Search all logs...">
-            <!-- Task outputs will be appended here -->
-        </main>
+        <div class="controls">
+            <input type="search" id="search-input" placeholder="Search...">
+        </div>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th data-sort-key="id">ID</th>
+                    <th data-sort-key="firstName">First Name</th>
+                    <th data-sort-key="lastName">Last Name</th>
+                    <th data-sort-key="email">Email</th>
+                    <th data-sort-key="city">City</th>
+                    <th data-sort-key="country">Country</th>
+                    <th data-sort-key="jobTitle">Job Title</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be inserted here -->
+            </tbody>
+        </table>
     </div>
     <script src="main.js"></script>
 </body>
