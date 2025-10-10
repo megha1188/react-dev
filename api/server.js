@@ -17,8 +17,41 @@ const gibberish = [
     "Wobbledy-wobbledy, a-splat.",
 ];
 
+const userMessages = [
+    "Tell me more.",
+    "How does that work?",
+    "Interesting.",
+    "Can you elaborate?",
+    "Okay, what's next?",
+    "I see.",
+];
+
+// Function to generate a large mock chat history
+const generateMockHistory = (count) => {
+    const history = [];
+    for (let i = 0; i < count; i++) {
+        if (i % 2 === 0) {
+            history.push({
+                text: userMessages[i % userMessages.length],
+                sender: 'user'
+            });
+        } else {
+            history.push({
+                text: gibberish[i % gibberish.length],
+                sender: 'ai'
+            });
+        }
+    }
+    return history;
+};
+
+// Endpoint to get the chat history
+app.get('/api/history', (req, res) => {
+    res.json(generateMockHistory(1500)); // Generate 1500 messages
+});
+
+// Endpoint to handle new messages
 app.post('/api/chat', (req, res) => {
-    // We don't use the request body, just return a random gibberish response
     setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * gibberish.length);
         res.json({ message: gibberish[randomIndex] });

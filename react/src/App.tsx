@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import './App.css';
@@ -9,12 +9,26 @@ interface MessageData {
 }
 
 const App: React.FC = () => {
-    const [messages, setMessages] = useState<MessageData[]>([
-        { text: 'Hello! I am a mock AI.', sender: 'ai' }
-    ]);
+    const [messages, setMessages] = useState<MessageData[]>([]);
+
+    // Fetch initial chat history on component mount
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const response = await fetch('http://localhost:3003/api/history');
+                const history = await response.json();
+                setMessages(history);
+            } catch (error) {
+                console.error('Error fetching chat history:', error);
+                setMessages([{ text: 'Failed to load chat history.', sender: 'ai' }]);
+            }
+        };
+        fetchHistory();
+    }, []); // Empty dependency array ensures this runs only once
 
     const handleSendMessage = async (message: string) => {
         const userMessage: MessageData = { text: message, sender: 'user' };
+        // Add user message to the state immediately for a responsive feel
         setMessages(prevMessages => [...prevMessages, userMessage]);
 
         try {
@@ -25,6 +39,7 @@ const App: React.FC = () => {
             });
             const data = await response.json();
             const aiMessage: MessageData = { text: data.message, sender: 'ai' };
+            // Add AI response to the state
             setMessages(prevMessages => [...prevMessages, aiMessage]);
         } catch (error) {
             console.error('Error fetching AI response:', error);
