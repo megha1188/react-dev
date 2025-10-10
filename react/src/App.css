@@ -20,11 +20,23 @@ body {
     box-shadow: none; /* No shadow for full screen */
 }
 
+.header {
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
 #chat-window {
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    border-bottom: 1px solid #ddd;
 }
 
 .message {

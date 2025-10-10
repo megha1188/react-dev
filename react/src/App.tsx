@@ -35,6 +35,9 @@ const App: React.FC = () => {
 
     return (
         <div id="chat-container">
+            <div className="header">
+                <h1>React Chat</h1>
+            </div>
             <ChatWindow messages={messages} />
             <MessageInput onSendMessage={handleSendMessage} />
         </div>
