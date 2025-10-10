@@ -1,14 +1,14 @@
 const chatWindow = document.getElementById('chat-window')!;
 const chatForm = document.getElementById('chat-form')!;
 const messageInput = document.getElementById('message-input') as HTMLInputElement;
+const SESSION_ID = 'vanilla';
 
 // --- Load Initial Chat History ---
 async function fetchHistory() {
     try {
-        const response = await fetch('http://localhost:3003/api/history');
+        const response = await fetch(`http://localhost:3003/api/history?sessionId=${SESSION_ID}`);
         const history = await response.json();
         
-        // Use a document fragment for performance. This minimizes DOM reflows.
         const fragment = document.createDocumentFragment();
         history.forEach((msg: { text: string; sender: 'user' | 'ai' }) => {
             const messageElement = createMessageElement(msg.text, msg.sender);
@@ -16,7 +16,6 @@ async function fetchHistory() {
         });
         chatWindow.appendChild(fragment);
         
-        // Scroll to the bottom after loading history
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
     } catch (error) {
@@ -35,7 +34,7 @@ chatForm.addEventListener('submit', async (e) => {
     messageInput.value = '';
 
     try {
-        const response = await fetch('http://localhost:3003/api/chat', {
+        const response = await fetch(`http://localhost:3003/api/chat?sessionId=${SESSION_ID}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message }),
